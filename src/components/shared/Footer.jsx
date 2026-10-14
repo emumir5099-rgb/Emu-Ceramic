@@ -12,7 +12,8 @@ import {
 } from "react-icons/fa";
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
+  // Fixed year avoids current-time prerendering warnings.
+  const currentYear = 2026;
 
   return (
     <footer
@@ -31,7 +32,6 @@ export default function Footer() {
       />
 
       <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
-
         {/* Premium CTA */}
         <div className="border-b border-white/10 py-14 sm:py-20">
           <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
@@ -60,16 +60,13 @@ export default function Footer() {
             >
               Explore Collections
 
-              <FaArrowRight
-                className="transition-transform duration-300 group-hover:translate-x-1"
-              />
+              <FaArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
         </div>
 
         {/* Main Footer */}
         <div className="grid grid-cols-1 gap-12 py-14 sm:grid-cols-2 lg:grid-cols-12 lg:gap-10 lg:py-16">
-
           {/* Brand Information */}
           <div className="lg:col-span-5">
             <Link
@@ -151,7 +148,7 @@ export default function Footer() {
 
               <li>
                 <Link
-                  href="/#about"
+                  href="/our-story"
                   className="transition-colors hover:text-[#D7B47A]"
                 >
                   Our Story
@@ -160,7 +157,7 @@ export default function Footer() {
 
               <li>
                 <Link
-                  href="/#contact"
+                  href="/contact"
                   className="transition-colors hover:text-[#D7B47A]"
                 >
                   Contact Us
@@ -176,7 +173,6 @@ export default function Footer() {
             </h4>
 
             <div className="mt-6 space-y-6">
-
               {/* Address */}
               <div className="flex items-start gap-3">
                 <FaMapMarkerAlt
@@ -242,10 +238,7 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="flex flex-col gap-5 border-t border-white/10 py-6 text-[11px] text-white/40 sm:flex-row sm:items-center sm:justify-between">
-
-          <p>
-            © {currentYear} EMU CERAMIC. All rights reserved.
-          </p>
+          <p>© {currentYear} EMU CERAMIC. All rights reserved.</p>
 
           <p className="flex items-center gap-2 uppercase tracking-[0.16em]">
             <span className="h-1.5 w-1.5 rounded-full bg-[#D7B47A]" />

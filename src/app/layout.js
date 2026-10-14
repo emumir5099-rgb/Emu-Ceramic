@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: {
-    default: "EMU CERAMIC | Premium Tiles & Surfaces",
+    default: "EMU CERAMIC",
     template: "%s | EMU CERAMIC",
   },
   description:
