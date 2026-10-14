@@ -15,13 +15,12 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const closeMenu = () => setMenuOpen(false);
-
-  const navLinks = [
-    { label: "Home", href: "/" },
-    { label: "Collections", href: "/all-tiles" },
-    { label: "Our Story", href: "/#about" },
-    { label: "Contact", href: "/#contact" },
-  ];
+const navLinks = [
+  { label: "Home", href: "/" },
+  { label: "Collections", href: "/all-tiles" },
+  { label: "Our Story", href: "/our-story" },
+  { label: "Contact", href: "/contact" },
+];
 
   return (
     <header className="sticky top-0 z-50">
