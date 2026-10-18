@@ -1,25 +1,66 @@
+
 "use client";
 
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff, LockKeyhole, Mail, ArrowRight } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [message, setMessage] = useState("");
+  const router = useRouter();
 
-  function handleSubmit(event) {
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
+
+  async function handleSubmit(event) {
     event.preventDefault();
-    setMessage("Login system is not connected yet.");
+    setMessage("");
+    setIsError(false);
+    setIsLoading(true);
+
+    try {
+      const result = await authClient.signIn.email({
+        email: email.trim(),
+        password,
+      });
+
+      if (result.error) {
+        setIsError(true);
+        setMessage(
+          result.error.message || "Login failed. Check your email and password."
+        );
+        return;
+      }
+
+      setMessage("Login successful! Redirecting...");
+      router.push("/client");
+      router.refresh();
+    } catch (error) {
+      setIsError(true);
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#faf9f6] px-4 py-10 sm:px-6">
       <div className="w-full max-w-md">
-        {/* Logo and tagline */}
         <div className="mb-8 flex flex-col items-center text-center">
-          <Link href="/" className="relative mb-4 block h-20 w-52 sm:h-24 sm:w-60">
+          <Link
+            href="/"
+            className="relative mb-4 block h-20 w-52 sm:h-24 sm:w-60"
+          >
             <Image
               src="/emu-ceramic.png"
               alt="EMU CERAMIC Logo"
@@ -43,7 +84,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Login form */}
         <div className="rounded-2xl border border-[#0b211d]/10 bg-white p-6 shadow-[0_12px_40px_rgba(11,33,29,0.07)] sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
@@ -63,6 +103,8 @@ export default function LoginPage() {
                   type="email"
                   autoComplete="email"
                   placeholder="Enter your email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
                   required
                   className="w-full bg-transparent py-3.5 text-sm text-[#0b211d] outline-none placeholder:text-gray-400"
                 />
@@ -87,10 +129,7 @@ export default function LoginPage() {
               </div>
 
               <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-[#faf9f6] px-4 transition focus-within:border-[#b18b4e] focus-within:ring-2 focus-within:ring-[#d7b47a]/20">
-                <LockKeyhole
-                  size={18}
-                  className="shrink-0 text-gray-400"
-                />
+                <LockKeyhole size={18} className="shrink-0 text-gray-400" />
 
                 <input
                   id="password"
@@ -98,6 +137,8 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   placeholder="Enter your password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
                   required
                   className="w-full bg-transparent py-3.5 text-sm text-[#0b211d] outline-none placeholder:text-gray-400"
                 />
@@ -115,19 +156,27 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#0b211d] px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[#173b32]"
+              disabled={isLoading}
+              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#0b211d] px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[#173b32] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Sign In
-              <ArrowRight
-                size={17}
-                className="transition-transform group-hover:translate-x-1"
-              />
+              {isLoading ? "Signing In..." : "Sign In"}
+              {!isLoading && (
+                <ArrowRight
+                  size={17}
+                  className="transition-transform group-hover:translate-x-1"
+                />
+              )}
             </button>
 
             {message && (
               <p
                 role="status"
-                className="rounded-lg bg-amber-50 p-3 text-center text-sm text-amber-800"
+                aria-live="polite"
+                className={`rounded-lg p-3 text-center text-sm ${
+                  isError
+                    ? "bg-red-50 text-red-700"
+                    : "bg-green-50 text-green-800"
+                }`}
               >
                 {message}
               </p>
@@ -148,7 +197,6 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        {/* Footer */}
         <div className="mt-6 text-center">
           <Link
             href="/"
