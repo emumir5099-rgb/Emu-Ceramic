@@ -4,7 +4,14 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, ArrowUpRight, UserRound } from "lucide-react";
+import {
+  Menu,
+  X,
+  ArrowUpRight,
+  UserRound,
+  LogOut,
+} from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -15,14 +22,32 @@ const navLinks = [
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const pathname = usePathname();
 
-  const closeMenu = () => setMenuOpen(false);
+  const { data: session, isPending } = authClient.useSession();
+
+  const closeMenu = () => {
+    setMenuOpen(false);
+    setProfileMenuOpen(false);
+  };
 
   const isActive = (href) => {
     if (href === "/") return pathname === "/";
     return pathname === href || pathname.startsWith(`${href}/`);
   };
+
+  const handleLogout = async () => {
+    try {
+      await authClient.signOut();
+      closeMenu();
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
+  const isLoggedIn = Boolean(session?.user);
 
   return (
     <header className="sticky top-0 z-50">
@@ -88,7 +113,6 @@ export default function Navbar() {
                   }`}
                 >
                   {item.label}
-
                   <span
                     className={`absolute bottom-1 left-0 h-px bg-[#A47743] transition-all duration-300 ${
                       active ? "w-full" : "w-0 group-hover:w-full"
@@ -99,24 +123,102 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Actions */}
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <Link
-              href="/login"
-              className="hidden items-center gap-2 border border-[#0B211D]/20 px-4 py-2.5 text-xs font-medium text-[#0B211D] transition-colors hover:border-[#A47743] hover:bg-[#0B211D] hover:text-white md:inline-flex"
-            >
-              <UserRound size={15} strokeWidth={1.7} />
-              Login
-            </Link>
+          {/* Desktop Account */}
+          <div className="hidden shrink-0 items-center gap-3 md:flex">
+            {!isPending &&
+              (isLoggedIn ? (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setProfileMenuOpen((open) => !open)
+                    }
+                    aria-label="Customer profile menu"
+                    aria-expanded={profileMenuOpen}
+                    className={`flex items-center gap-2 border px-3 py-2.5 transition-colors ${
+                      isActive("/client")
+                        ? "border-[#A47743] bg-[#0B211D] text-white"
+                        : "border-[#0B211D]/20 text-[#0B211D] hover:border-[#A47743] hover:bg-[#0B211D] hover:text-white"
+                    }`}
+                  >
+                    <UserRound size={17} strokeWidth={1.7} />
+                    <span className="max-w-28 truncate text-xs font-medium">
+                      {session.user.name || "My Account"}
+                    </span>
+                  </button>
 
-            {/* Mobile Menu Toggle */}
+                  {profileMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-56 border border-[#0B211D]/10 bg-[#FAF9F6] p-2 shadow-xl">
+                      <div className="border-b border-[#0B211D]/10 px-3 py-3">
+                        <p className="text-sm font-semibold text-[#0B211D]">
+                          My Account
+                        </p>
+                        <p className="mt-1 truncate text-xs text-[#0B211D]/60">
+                          {session.user.email}
+                        </p>
+                      </div>
+
+                      <Link
+                        href="/client"
+                        onClick={closeMenu}
+                        className="flex items-center gap-3 px-3 py-3 text-sm text-[#0B211D] transition-colors hover:bg-[#0B211D]/5 hover:text-[#A47743]"
+                      >
+                        <UserRound size={16} />
+                        Customer Profile
+                      </Link>
+
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-3 px-3 py-3 text-sm text-red-700 transition-colors hover:bg-red-50"
+                      >
+                        <LogOut size={16} />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-2 border border-[#0B211D]/20 px-4 py-2.5 text-xs font-medium text-[#0B211D] transition-colors hover:border-[#A47743] hover:bg-[#0B211D] hover:text-white"
+                >
+                  <UserRound size={15} strokeWidth={1.7} />
+                  Login
+                </Link>
+              ))}
+          </div>
+
+          {/* Mobile Controls */}
+          <div className="flex shrink-0 items-center gap-2 md:hidden">
+            {!isPending &&
+              (isLoggedIn ? (
+                <Link
+                  href="/client"
+                  onClick={closeMenu}
+                  aria-label="Customer Profile"
+                  className="grid h-10 w-10 place-items-center border border-[#A47743] bg-[#0B211D] text-white transition-colors hover:bg-[#A47743]"
+                >
+                  <UserRound size={19} />
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={closeMenu}
+                  aria-label="Login"
+                  className="grid h-10 w-10 place-items-center border border-[#0B211D]/20 text-[#0B211D] transition-colors hover:bg-[#0B211D] hover:text-white"
+                >
+                  <UserRound size={19} />
+                </Link>
+              ))}
+
             <button
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
               aria-label={menuOpen ? "Close menu" : "Open menu"}
               aria-expanded={menuOpen}
               aria-controls="mobile-navigation"
-              className="grid h-10 w-10 place-items-center bg-[#0B211D] text-white transition-colors hover:bg-[#A47743] lg:hidden"
+              className="grid h-10 w-10 place-items-center bg-[#0B211D] text-white transition-colors hover:bg-[#A47743]"
             >
               {menuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
@@ -148,21 +250,45 @@ export default function Navbar() {
                     {item.label}
                     <ArrowUpRight
                       size={16}
-                      className={active ? "text-[#A47743]" : "text-[#0B211D]/40"}
+                      className={
+                        active ? "text-[#A47743]" : "text-[#0B211D]/40"
+                      }
                     />
                   </Link>
                 );
               })}
             </nav>
 
-            <Link
-              href="/login"
-              onClick={closeMenu}
-              className="mt-5 flex w-full items-center justify-center gap-2 bg-[#0B211D] px-4 py-3.5 text-sm font-medium text-white transition-colors hover:bg-[#A47743]"
-            >
-              <UserRound size={17} />
-              Login to Your Account
-            </Link>
+            {isLoggedIn ? (
+              <>
+                <Link
+                  href="/client"
+                  onClick={closeMenu}
+                  className="mt-5 flex w-full items-center justify-center gap-2 border border-[#A47743] bg-[#0B211D] px-4 py-3.5 text-sm font-medium text-white transition-colors hover:bg-[#A47743]"
+                >
+                  <UserRound size={17} />
+                  My Customer Profile
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="mt-3 flex w-full items-center justify-center gap-2 border border-red-200 px-4 py-3 text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
+                >
+                  <LogOut size={17} />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                onClick={closeMenu}
+                className="mt-5 flex w-full items-center justify-center gap-2 bg-[#0B211D] px-4 py-3.5 text-sm font-medium text-white transition-colors hover:bg-[#A47743]"
+              >
+                <UserRound size={17} />
+                Login to Your Account
+              </Link>
+            )}
 
             <p className="mt-5 text-center text-[9px] uppercase tracking-[0.25em] text-[#A47743]">
               The Art of Surfaces
