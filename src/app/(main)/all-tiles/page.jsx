@@ -2,97 +2,119 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import {
+  Search,
+  ShoppingBag,
+  Plus,
+  Minus,
+  X,
+  MessageCircle,
+  Trash2,
+  SlidersHorizontal,
+  ArrowRight,
+} from "lucide-react";
 
-const WHATSAPP_NUMBER = "8809696026555";
+// নিজের ব্যবসার WhatsApp নম্বর দেশের কোডসহ বসাবে
+const WHATSAPP_NUMBER = "8801772404329";
 
-const categories = [
-  "All Collections",
-  "Floor Tiles",
-  "Wall Tiles",
-  "Marble Look",
-  "Stone Look",
-];
-
-const products = [
+const collections = [
   {
-    id: 1,
-    name: "Royal Marble",
-    category: "Marble Look",
-    price: 125,
-    size: "600 × 1200 mm",
-    sku: "EMU-RM-001",
+    name: "Marble",
+    title: "Marble Elegance",
+    price: 95,
+    finish: "Glossy",
     image:
       "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=85",
-    description: "Elegant marble-inspired finish for premium interiors.",
   },
   {
-    id: 2,
-    name: "Ivory Elegance",
-    category: "Floor Tiles",
-    price: 95,
-    size: "600 × 600 mm",
-    sku: "EMU-IE-002",
-    image:
-      "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=900&q=85",
-    description: "Warm ivory tones for bright, welcoming spaces.",
-  },
-  {
-    id: 3,
-    name: "Urban Stone",
-    category: "Stone Look",
-    price: 110,
-    size: "600 × 1200 mm",
-    sku: "EMU-US-003",
+    name: "Stone",
+    title: "Natural Stone",
+    price: 85,
+    finish: "Matte",
     image:
       "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=900&q=85",
-    description: "Natural stone aesthetics for modern architecture.",
   },
   {
-    id: 4,
-    name: "Serene Walls",
-    category: "Wall Tiles",
-    price: 85,
-    size: "300 × 600 mm",
-    sku: "EMU-SW-004",
+    name: "Wood",
+    title: "Wood Essence",
+    price: 105,
+    finish: "Matte",
     image:
       "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=900&q=85",
-    description: "A refined finish for stylish walls and bathrooms.",
   },
   {
-    id: 5,
-    name: "Grand Palazzo",
-    category: "Marble Look",
-    price: 145,
-    size: "800 × 800 mm",
-    sku: "EMU-GP-005",
+    name: "Concrete",
+    title: "Urban Concrete",
+    price: 80,
+    finish: "Matte",
     image:
       "https://images.unsplash.com/photo-1600607687644-c7171b42498f?auto=format&fit=crop&w=900&q=85",
-    description: "A sophisticated look for statement interiors.",
   },
   {
-    id: 6,
-    name: "Natural Harmony",
-    category: "Floor Tiles",
-    price: 105,
-    size: "600 × 600 mm",
-    sku: "EMU-NH-006",
+    name: "Glossy",
+    title: "Glossy Luxe",
+    price: 90,
+    finish: "High Gloss",
+    image:
+      "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=900&q=85",
+  },
+  {
+    name: "Matte",
+    title: "Minimal Matte",
+    price: 88,
+    finish: "Matte",
+    image:
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=85",
+  },
+  {
+    name: "Mosaic",
+    title: "Mosaic Art",
+    price: 120,
+    finish: "Decorative",
+    image:
+      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=900&q=85",
+  },
+  {
+    name: "Outdoor",
+    title: "Outdoor Pro",
+    price: 75,
+    finish: "Textured",
     image:
       "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=900&q=85",
-    description: "Subtle textures for calm and comfortable living.",
   },
 ];
 
-const money = (amount) =>
-  new Intl.NumberFormat("en-BD", {
-    maximumFractionDigits: 2,
-  }).format(amount);
+const sizes = [
+  "12×12 inch",
+  "12×24 inch",
+  "24×24 inch",
+  "24×48 inch",
+  "32×32 inch",
+  "36×36 inch",
+];
 
-export default function CollectionPage() {
-  const [activeCategory, setActiveCategory] = useState("All Collections");
+const products = collections.flatMap((collection, collectionIndex) =>
+  sizes.map((size, sizeIndex) => ({
+    id: collectionIndex * sizes.length + sizeIndex + 1,
+    name: `${collection.title} ${String(sizeIndex + 1).padStart(2, "0")}`,
+    collection: collection.name,
+    size,
+    finish: collection.finish,
+    price: collection.price + sizeIndex * 5,
+    image: collection.image,
+    featured: sizeIndex === 0 || sizeIndex === 2,
+  }))
+);
+
+const money = (amount) =>
+  `৳${Number(amount).toLocaleString("en-BD")}`;
+
+export default function PremiumCollectionPage() {
   const [search, setSearch] = useState("");
-  const [cart, setCart] = useState([]);
+  const [category, setCategory] = useState("All");
+  const [sortBy, setSortBy] = useState("featured");
+  const [cart, setCart] = useState({});
   const [cartOpen, setCartOpen] = useState(false);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [customer, setCustomer] = useState({
     name: "",
     phone: "",
@@ -101,527 +123,672 @@ export default function CollectionPage() {
   });
 
   const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      const matchesCategory =
-        activeCategory === "All Collections" ||
-        product.category === activeCategory;
+    let result = products.filter((product) => {
+      const query = search.trim().toLowerCase();
 
-      const matchesSearch = [
-        product.name,
-        product.category,
-        product.sku,
-        product.size,
-      ]
-        .join(" ")
-        .toLowerCase()
-        .includes(search.toLowerCase());
+      const matchesCategory =
+        category === "All" || product.collection === category;
+
+      const matchesSearch =
+        !query ||
+        product.name.toLowerCase().includes(query) ||
+        product.collection.toLowerCase().includes(query) ||
+        product.size.toLowerCase().includes(query) ||
+        product.finish.toLowerCase().includes(query);
 
       return matchesCategory && matchesSearch;
     });
-  }, [activeCategory, search]);
 
-  const cartCount = cart.reduce((sum, item) => sum + item.qty, 0);
+    if (sortBy === "low") {
+      result = [...result].sort((a, b) => a.price - b.price);
+    }
 
-  const cartTotal = cart.reduce(
-    (sum, item) => sum + item.price * item.qty,
+    if (sortBy === "high") {
+      result = [...result].sort((a, b) => b.price - a.price);
+    }
+
+    return result;
+  }, [search, category, sortBy]);
+
+  const cartItems = products
+    .filter((product) => (cart[product.id] || 0) > 0)
+    .map((product) => ({
+      ...product,
+      quantity: cart[product.id],
+    }));
+
+  const cartCount = cartItems.reduce(
+    (sum, item) => sum + item.quantity,
     0
   );
 
-  function addToCart(product) {
-    setCart((current) => {
-      const existing = current.find((item) => item.id === product.id);
+  const total = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
-      if (existing) {
-        return current.map((item) =>
-          item.id === product.id
-            ? { ...item, qty: item.qty + 1 }
-            : item
-        );
+  // Add to Cart এবং quantity পরিবর্তনের মূল ফাংশন
+  function updateQuantity(productId, change) {
+    setCart((previousCart) => {
+      const nextCart = { ...previousCart };
+      const newQuantity = (nextCart[productId] || 0) + change;
+
+      if (newQuantity <= 0) {
+        delete nextCart[productId];
+      } else {
+        nextCart[productId] = newQuantity;
       }
 
-      return [...current, { ...product, qty: 1 }];
+      return nextCart;
     });
+  }
+
+  // Buy Now: পণ্য কার্টে যোগ করে checkout খুলবে
+  function handleBuyNow(product) {
+    setCart((previousCart) => ({
+      ...previousCart,
+      [product.id]: (previousCart[product.id] || 0) + 1,
+    }));
 
     setCartOpen(true);
   }
 
-  function changeQuantity(id, change) {
-    setCart((current) =>
-      current
-        .map((item) =>
-          item.id === id
-            ? { ...item, qty: item.qty + change }
-            : item
-        )
-        .filter((item) => item.qty > 0)
-    );
-  }
-
-  function removeFromCart(id) {
-    setCart((current) => current.filter((item) => item.id !== id));
+  function removeFromCart(productId) {
+    setCart((previousCart) => {
+      const nextCart = { ...previousCart };
+      delete nextCart[productId];
+      return nextCart;
+    });
   }
 
   function updateCustomer(field, value) {
-    setCustomer((current) => ({ ...current, [field]: value }));
+    setCustomer((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
   }
 
-  function placeWhatsAppOrder(event) {
-    event.preventDefault();
-
-    if (cart.length === 0) {
-      alert("Please add a product to your cart first.");
+  function sendOrder() {
+    if (cartItems.length === 0) {
+      alert("প্রথমে কার্টে পণ্য যোগ করুন।");
       return;
     }
 
-    const itemLines = cart
-      .map(
-        (item) =>
-          `• ${item.name} (${item.sku})\n  ${item.qty} sq. ft. × ৳${money(
-            item.price
-          )} = ৳${money(item.price * item.qty)}`
-      )
-      .join("\n\n");
+    if (
+      !customer.name.trim() ||
+      !customer.phone.trim() ||
+      !customer.address.trim()
+    ) {
+      alert("আপনার নাম, ফোন নম্বর ও ঠিকানা পূরণ করুন।");
+      return;
+    }
+
+    if (!/^\+?[0-9\s()-]{8,20}$/.test(customer.phone.trim())) {
+      alert("সঠিক ফোন নম্বর লিখুন।");
+      return;
+    }
+
+    if (!/^\d{10,15}$/.test(WHATSAPP_NUMBER)) {
+      alert("কোডে সঠিক WhatsApp নম্বর বসান।");
+      return;
+    }
+
+    const itemLines = cartItems.map(
+      (item, index) =>
+        `${index + 1}. ${item.name}\n` +
+        `Size: ${item.size}\n` +
+        `Finish: ${item.finish}\n` +
+        `Quantity: ${item.quantity} sq.ft.\n` +
+        `Price: ${money(item.price)} / sq.ft.\n` +
+        `Subtotal: ${money(item.price * item.quantity)}`
+    );
 
     const message = [
-      "Hello EMU CERAMIC!",
-      "",
-      "I would like to place a tile order.",
-      "",
-      "ORDER DETAILS",
-      itemLines,
-      "",
-      `Estimated subtotal: ৳${money(cartTotal)}`,
+      "Assalamu Alaikum, I want to order from EMU CERAMIC.",
       "",
       "CUSTOMER DETAILS",
-      `Name: ${customer.name}`,
-      `Phone: ${customer.phone}`,
-      `Delivery address: ${customer.address}`,
-      `Additional note: ${customer.note || "None"}`,
+      `Name: ${customer.name.trim()}`,
+      `Phone: ${customer.phone.trim()}`,
+      `Address: ${customer.address.trim()}`,
       "",
-      "Please confirm product availability, box coverage, final quantity and delivery charges.",
-    ].join("\n");
+      "ORDER DETAILS",
+      ...itemLines,
+      "",
+      `Product Total: ${money(total)}`,
+      "Please confirm stock, delivery charges and final price.",
+      customer.note.trim()
+        ? `Additional Note: ${customer.note.trim()}`
+        : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
 
-    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-      message
-    )}`;
+    const url =
+      `https://wa.me/${WHATSAPP_NUMBER}?text=` +
+      encodeURIComponent(message);
 
-    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+    window.open(url, "_blank", "noopener,noreferrer");
   }
 
   return (
-    <main className="min-h-screen bg-[#faf9f6] text-[#17352d]">
-      {/* Hero */}
-      <section className="relative flex min-h-[410px] items-center overflow-hidden bg-[#0b211d] px-5 py-16 text-white md:min-h-[490px] md:px-12">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-35"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1800&q=90')",
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#071713] via-[#0b211d]/85 to-transparent" />
+    <main className="min-h-screen bg-[#faf9f6] text-[#282820]">
+      {/* HERO */}
+      <section className="bg-[#24271f] text-white">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 py-16 sm:px-8 sm:py-24 md:grid-cols-2">
+          <div>
+            <p className="mb-5 text-xs tracking-[0.3em] text-[#d5c29c]">
+              THE ART OF SURFACES
+            </p>
 
-        <div className="relative mx-auto w-full max-w-7xl">
-          <p className="mb-5 text-xs font-semibold uppercase tracking-[0.3em] text-[#d7b47a]">
-            EMU CERAMIC · CURATED SURFACES
-          </p>
+            <p className="text-sm tracking-[0.25em] text-[#c8b99c]">
+              EMU CERAMIC
+            </p>
 
-          <h1 className="max-w-3xl text-4xl font-light leading-tight md:text-6xl">
-            Discover Your
-            <br />
-            <span className="font-semibold text-[#d7b47a]">
-              Perfect Surface.
-            </span>
-          </h1>
+            <h1 className="mt-4 text-4xl font-light sm:text-6xl">
+              Premium
+              <span className="block font-semibold text-[#d5c29c]">
+                Collection
+              </span>
+            </h1>
 
-          <p className="mt-6 max-w-xl text-sm leading-7 text-white/75 md:text-base">
-            Explore ceramic collections, compare prices and order your
-            favourite tiles directly through WhatsApp.
-          </p>
+            <p className="mt-5 max-w-lg leading-7 text-white/70">
+              Discover elegant surfaces for beautiful homes,
+              modern offices and timeless spaces.
+            </p>
 
-          <a
-            href="#collections"
-            className="mt-8 inline-flex bg-[#d7b47a] px-7 py-4 text-xs font-bold uppercase tracking-widest text-[#0b211d] transition hover:bg-white"
-          >
-            Shop Collections ↗
-          </a>
+            <button
+              type="button"
+              onClick={() =>
+                document
+                  .getElementById("collection")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
+              className="mt-8 flex items-center gap-3 bg-[#d5c29c] px-6 py-3 font-medium text-[#24271f] hover:bg-white"
+            >
+              Explore Collection
+              <ArrowRight size={18} />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <img
+                src={collections[0].image}
+                alt="Marble-inspired interior"
+                className="h-64 w-full object-cover sm:h-80"
+              />
+              <p className="mt-3 text-sm text-[#d5c29c]">
+                Marble Elegance
+              </p>
+            </div>
+
+            <div className="mt-8">
+              <img
+                src={collections[2].image}
+                alt="Wood-inspired interior"
+                className="h-64 w-full object-cover sm:h-80"
+              />
+              <p className="mt-3 text-sm text-[#d5c29c]">
+                Wood Essence
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Product listing */}
+      {/* COLLECTION */}
       <section
-        id="collections"
-        className="mx-auto max-w-7xl px-5 py-14 md:px-12 md:py-20"
+        id="collection"
+        className="mx-auto max-w-7xl px-4 py-12 sm:px-8 sm:py-16"
       >
-        <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.3em] text-[#a17b43]">
+            <p className="text-xs tracking-[0.25em] text-[#8b7855]">
               FIND YOUR STYLE
             </p>
-            <h2 className="text-3xl font-medium md:text-4xl">
-              Shop Our Collections
+            <h2 className="mt-2 text-3xl font-semibold sm:text-4xl">
+              Premium Tiles
             </h2>
-            <p className="mt-3 text-sm text-[#68746e]">
-              {filteredProducts.length} products available in this view
+            <p className="mt-2 text-sm text-gray-500">
+              Explore all {products.length} products.
             </p>
           </div>
 
           <button
-            onClick={() => setCartOpen(!cartOpen)}
-            className="flex items-center justify-center gap-3 self-start bg-[#0b211d] px-6 py-4 text-sm font-semibold text-white transition hover:bg-[#21473c] md:self-auto"
+            type="button"
+            onClick={() => setCartOpen(true)}
+            className="flex items-center gap-2 bg-[#292b23] px-5 py-3 text-white hover:bg-[#45483b]"
           >
-            <span aria-hidden="true">🛒</span>
-            My Cart ({cartCount})
-            <span className="text-[#d7b47a]">৳{money(cartTotal)}</span>
+            <ShoppingBag size={19} />
+            Cart
+            <span className="rounded-full bg-[#d5c29c] px-2 py-0.5 text-xs text-black">
+              {cartCount}
+            </span>
           </button>
         </div>
 
-        {/* Search */}
-        <div className="mt-8">
-          <input
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by product, model or size..."
-            aria-label="Search products"
-            className="w-full border border-[#dedbd2] bg-white px-5 py-4 text-sm outline-none transition focus:border-[#a17b43]"
-          />
-        </div>
+        {/* SEARCH */}
+        <div className="mb-6 grid gap-3 sm:grid-cols-[1fr_auto]">
+          <div className="flex items-center gap-3 border border-gray-200 bg-white px-4 py-3">
+            <Search size={19} className="text-gray-400" />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search tiles, size or finish..."
+              aria-label="Search products"
+              className="w-full bg-transparent text-sm outline-none"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                aria-label="Clear search"
+              >
+                <X size={17} />
+              </button>
+            )}
+          </div>
 
-        {/* Category filters */}
-        <div className="mt-5 flex gap-2 overflow-x-auto pb-3">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setActiveCategory(category)}
-              className={`shrink-0 border px-4 py-3 text-xs font-semibold transition ${
-                activeCategory === category
-                  ? "border-[#0b211d] bg-[#0b211d] text-white"
-                  : "border-[#dedbd2] text-[#526159] hover:border-[#a17b43]"
-              }`}
+          <label className="flex items-center gap-2 border border-gray-200 bg-white px-3 py-2 text-sm">
+            <SlidersHorizontal size={17} />
+            <select
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value)}
+              aria-label="Sort products"
+              className="max-w-48 bg-transparent outline-none"
             >
-              {category}
-            </button>
-          ))}
+              <option value="featured">Featured</option>
+              <option value="low">Price: Low to High</option>
+              <option value="high">Price: High to Low</option>
+            </select>
+          </label>
         </div>
 
-        {/* Cart panel */}
-        {cartOpen && (
-          <section className="mt-8 border border-[#dedbd2] bg-white p-5 md:p-8">
-            <div className="flex items-center justify-between gap-4">
+        {/* CATEGORY */}
+        <div className="mb-8 flex gap-2 overflow-x-auto pb-2">
+          {["All", ...collections.map((item) => item.name)].map(
+            (item) => (
+              <button
+                type="button"
+                key={item}
+                onClick={() => setCategory(item)}
+                className={`shrink-0 border px-4 py-2 text-sm ${
+                  category === item
+                    ? "border-[#292b23] bg-[#292b23] text-white"
+                    : "border-gray-200 bg-white hover:border-[#292b23]"
+                }`}
+              >
+                {item === "All" ? "All Products" : item}
+              </button>
+            )
+          )}
+        </div>
+
+        <p className="mb-5 text-sm text-gray-500">
+          Showing {filteredProducts.length} products
+        </p>
+
+        {/* PRODUCT GRID */}
+        {filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredProducts.map((product) => {
+              const quantity = cart[product.id] || 0;
+
+              return (
+                <article
+                  key={product.id}
+                  className="group overflow-hidden border border-[#e9e5dc] bg-white transition hover:-translate-y-1 hover:shadow-lg"
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden bg-[#eee9df]">
+                    <img
+                      src={product.image}
+                      alt={`${product.name} tile design`}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    />
+
+                    {product.featured && (
+                      <span className="absolute left-3 top-3 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-widest">
+                        Featured
+                      </span>
+                    )}
+
+                    <span className="absolute bottom-3 right-3 bg-black/60 px-2 py-1 text-xs text-white">
+                      {product.collection}
+                    </span>
+                  </div>
+
+                  <div className="p-4">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-[#8b7855]">
+                      EMU CERAMIC · EC-
+                      {String(product.id).padStart(3, "0")}
+                    </p>
+
+                    <h3 className="mt-2 text-lg font-semibold">
+                      {product.name}
+                    </h3>
+
+                    <div className="mt-4 space-y-2 border-t border-gray-100 pt-3 text-sm">
+                      <div className="flex justify-between gap-2">
+                        <span className="text-gray-500">Size</span>
+                        <span>{product.size}</span>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <span className="text-gray-500">Finish</span>
+                        <span>{product.finish}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-4">
+                      <p className="text-xs text-gray-500">
+                        Demo price / sq.ft.
+                      </p>
+                      <p className="text-xl font-semibold">
+                        {money(product.price)}
+                      </p>
+                    </div>
+
+                    {/* ADD TO CART */}
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(product.id, 1)}
+                      className="mt-4 flex w-full items-center justify-center gap-2 border border-[#292b23] px-3 py-3 text-sm font-medium transition hover:bg-[#eeeae0]"
+                    >
+                      <Plus size={17} />
+                      Add to Cart
+                    </button>
+
+                    {/* BUY NOW */}
+                    <button
+                      type="button"
+                      onClick={() => handleBuyNow(product)}
+                      className="mt-2 flex w-full items-center justify-center gap-2 bg-[#292b23] px-3 py-3 text-sm font-medium text-white transition hover:bg-[#555747]"
+                    >
+                      <ShoppingBag size={17} />
+                      Buy Now
+                    </button>
+
+                    {quantity > 0 && (
+                      <div className="mt-3 flex items-center justify-between border border-[#e9e5dc] p-2">
+                        <span className="text-xs text-gray-600">
+                          {quantity} sq.ft. in cart
+                        </span>
+
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateQuantity(product.id, -1)
+                            }
+                            aria-label={`Decrease ${product.name}`}
+                            className="p-1 hover:bg-gray-100"
+                          >
+                            <Minus size={16} />
+                          </button>
+
+                          <span className="text-sm font-semibold">
+                            {quantity}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateQuantity(product.id, 1)
+                            }
+                            aria-label={`Increase ${product.name}`}
+                            className="p-1 hover:bg-gray-100"
+                          >
+                            <Plus size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="border border-dashed border-gray-300 bg-white py-16 text-center">
+            <Search className="mx-auto text-gray-400" size={32} />
+            <h3 className="mt-4 font-semibold">No products found</h3>
+            <p className="mt-2 text-sm text-gray-500">
+              Try another search or category.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearch("");
+                setCategory("All");
+              }}
+              className="mt-4 underline"
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
+      </section>
+
+      {/* CART DRAWER */}
+      {cartOpen && (
+        <div
+          className="fixed inset-0 z-50 flex justify-end bg-black/50"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setCartOpen(false);
+            }
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cart-title"
+            className="flex h-full w-full max-w-xl flex-col overflow-y-auto bg-white shadow-2xl"
+          >
+            <div className="flex items-center justify-between border-b p-5">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#a17b43]">
-                  YOUR SELECTION
+                <p className="text-xs tracking-widest text-[#8b7855]">
+                  EMU CERAMIC
                 </p>
-                <h3 className="mt-2 text-2xl font-medium">Shopping Cart</h3>
+                <h2 id="cart-title" className="mt-1 text-2xl font-semibold">
+                  Your Cart ({cartCount})
+                </h2>
               </div>
 
               <button
+                type="button"
                 onClick={() => setCartOpen(false)}
-                className="border border-[#dedbd2] px-4 py-2 text-sm"
+                aria-label="Close cart"
+                className="p-2 hover:bg-gray-100"
               >
-                Close ✕
+                <X size={22} />
               </button>
             </div>
 
-            {cart.length === 0 ? (
-              <p className="py-8 text-sm text-[#68746e]">
-                Your cart is empty. Add a tile collection to get started.
-              </p>
-            ) : (
-              <>
-                <div className="mt-6 divide-y divide-[#e9e5dd]">
-                  {cart.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center"
-                    >
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="h-24 w-full object-cover sm:w-28"
-                      />
+            <div className="flex-1 space-y-4 p-5">
+              {cartItems.length === 0 ? (
+                <div className="py-12 text-center">
+                  <ShoppingBag
+                    className="mx-auto text-gray-300"
+                    size={42}
+                  />
+                  <p className="mt-4 text-gray-600">
+                    Your cart is empty.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setCartOpen(false)}
+                    className="mt-4 underline"
+                  >
+                    Browse products
+                  </button>
+                </div>
+              ) : (
+                cartItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex gap-3 border-b border-gray-100 pb-4"
+                  >
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="h-20 w-20 shrink-0 object-cover"
+                    />
 
-                      <div className="flex-1">
-                        <h4 className="font-semibold">{item.name}</h4>
-                        <p className="mt-1 text-xs text-[#68746e]">
-                          {item.sku} · ৳{money(item.price)}/sq. ft.
-                        </p>
-                        <p className="mt-2 font-semibold">
-                          ৳{money(item.price * item.qty)}
-                        </p>
-                      </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold">{item.name}</h3>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {item.size} · {money(item.price)}/sq.ft.
+                      </p>
 
-                      <div className="flex items-center gap-3">
+                      <div className="mt-3 flex items-center gap-3">
                         <button
-                          onClick={() => changeQuantity(item.id, -1)}
-                          aria-label={`Decrease ${item.name} quantity`}
-                          className="h-9 w-9 border border-[#dedbd2]"
+                          type="button"
+                          onClick={() =>
+                            updateQuantity(item.id, -1)
+                          }
+                          aria-label="Decrease quantity"
+                          className="border p-1"
                         >
-                          −
+                          <Minus size={14} />
                         </button>
 
-                        <span className="min-w-12 text-center text-sm">
-                          {item.qty} sq. ft.
+                        <span className="text-sm">
+                          {item.quantity} sq.ft.
                         </span>
 
                         <button
-                          onClick={() => changeQuantity(item.id, 1)}
-                          aria-label={`Increase ${item.name} quantity`}
-                          className="h-9 w-9 border border-[#dedbd2]"
+                          type="button"
+                          onClick={() =>
+                            updateQuantity(item.id, 1)
+                          }
+                          aria-label="Increase quantity"
+                          className="border p-1"
                         >
-                          +
+                          <Plus size={14} />
                         </button>
 
                         <button
+                          type="button"
                           onClick={() => removeFromCart(item.id)}
-                          className="ml-2 text-xs text-red-700 underline"
+                          aria-label="Remove product"
+                          className="ml-auto p-1 text-red-600"
                         >
-                          Remove
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     </div>
-                  ))}
-                </div>
 
-                <div className="flex flex-col justify-between gap-5 border-t border-[#dedbd2] pt-6 sm:flex-row sm:items-center">
-                  <div>
-                    <p className="text-sm text-[#68746e]">
-                      Estimated subtotal
-                    </p>
-                    <p className="mt-1 text-2xl font-semibold">
-                      ৳{money(cartTotal)}
-                    </p>
-                    <p className="mt-2 max-w-md text-xs leading-5 text-[#68746e]">
-                      Delivery, box coverage and final order quantity will
-                      be confirmed by EMU CERAMIC.
+                    <p className="shrink-0 text-sm font-semibold">
+                      {money(item.price * item.quantity)}
                     </p>
                   </div>
+                ))
+              )}
 
-                  <button
-                    onClick={() => setCheckoutOpen(true)}
-                    className="bg-[#0b211d] px-7 py-4 text-sm font-semibold text-white transition hover:bg-[#21473c]"
-                  >
-                    Continue to Order ↗
-                  </button>
-                </div>
-              </>
-            )}
-          </section>
-        )}
+              {cartItems.length > 0 && (
+                <>
+                  <div className="flex justify-between border-t pt-4 text-lg font-semibold">
+                    <span>Product Total</span>
+                    <span>{money(total)}</span>
+                  </div>
 
-        {/* Checkout form */}
-        {checkoutOpen && (
-          <section className="mt-8 border border-[#d7b47a] bg-white p-5 md:p-8">
-            <div className="mb-7 flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#a17b43]">
-                  ALMOST THERE
-                </p>
-                <h3 className="mt-2 text-2xl font-medium">
-                  Your Order Details
-                </h3>
-                <p className="mt-2 text-sm text-[#68746e]">
-                  Fill in your details. Your order will open in WhatsApp for
-                  you to send to our team.
-                </p>
-              </div>
+                  <p className="text-xs leading-5 text-gray-500">
+                    Delivery charges and final prices will be confirmed
+                    by EMU CERAMIC.
+                  </p>
 
-              <button
-                onClick={() => setCheckoutOpen(false)}
-                aria-label="Close order form"
-                className="border border-[#dedbd2] px-3 py-2"
-              >
-                ✕
-              </button>
+                  <div className="space-y-4 pt-3">
+                    <h3 className="font-semibold">Customer Details</h3>
+
+                    <label className="block text-sm">
+                      Full Name *
+                      <input
+                        value={customer.name}
+                        onChange={(event) =>
+                          updateCustomer("name", event.target.value)
+                        }
+                        placeholder="Your full name"
+                        autoComplete="name"
+                        className="mt-1 w-full border border-gray-300 px-3 py-3 outline-none focus:border-[#8b7855]"
+                      />
+                    </label>
+
+                    <label className="block text-sm">
+                      Phone Number *
+                      <input
+                        type="tel"
+                        value={customer.phone}
+                        onChange={(event) =>
+                          updateCustomer("phone", event.target.value)
+                        }
+                        placeholder="01XXXXXXXXX"
+                        autoComplete="tel"
+                        className="mt-1 w-full border border-gray-300 px-3 py-3 outline-none focus:border-[#8b7855]"
+                      />
+                    </label>
+
+                    <label className="block text-sm">
+                      Delivery Address *
+                      <textarea
+                        value={customer.address}
+                        onChange={(event) =>
+                          updateCustomer("address", event.target.value)
+                        }
+                        placeholder="House, road, area, district"
+                        autoComplete="street-address"
+                        rows={3}
+                        className="mt-1 w-full border border-gray-300 px-3 py-3 outline-none focus:border-[#8b7855]"
+                      />
+                    </label>
+
+                    <label className="block text-sm">
+                      Additional Instructions
+                      <textarea
+                        value={customer.note}
+                        onChange={(event) =>
+                          updateCustomer("note", event.target.value)
+                        }
+                        placeholder="Any special requirements..."
+                        rows={2}
+                        className="mt-1 w-full border border-gray-300 px-3 py-3 outline-none focus:border-[#8b7855]"
+                      />
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={sendOrder}
+                      className="flex w-full items-center justify-center gap-3 bg-[#24764a] px-5 py-4 font-semibold text-white transition hover:bg-[#1c5e3b]"
+                    >
+                      <MessageCircle size={21} />
+                      Order via WhatsApp
+                    </button>
+
+                    <p className="text-center text-xs leading-5 text-gray-500">
+                      WhatsApp will open with your order details.
+                      Press Send in WhatsApp to submit the order.
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
-
-            <form
-              onSubmit={placeWhatsAppOrder}
-              className="grid grid-cols-1 gap-5 md:grid-cols-2"
-            >
-              <label className="text-sm font-medium">
-                Full name *
-                <input
-                  required
-                  value={customer.name}
-                  onChange={(event) =>
-                    updateCustomer("name", event.target.value)
-                  }
-                  placeholder="Enter your name"
-                  className="mt-2 w-full border border-[#dedbd2] px-4 py-3 font-normal outline-none focus:border-[#a17b43]"
-                />
-              </label>
-
-              <label className="text-sm font-medium">
-                Mobile number *
-                <input
-                  required
-                  type="tel"
-                  value={customer.phone}
-                  onChange={(event) =>
-                    updateCustomer("phone", event.target.value)
-                  }
-                  placeholder="01XXXXXXXXX"
-                  className="mt-2 w-full border border-[#dedbd2] px-4 py-3 font-normal outline-none focus:border-[#a17b43]"
-                />
-              </label>
-
-              <label className="text-sm font-medium md:col-span-2">
-                Delivery address *
-                <textarea
-                  required
-                  value={customer.address}
-                  onChange={(event) =>
-                    updateCustomer("address", event.target.value)
-                  }
-                  placeholder="House, road, area, district"
-                  rows={3}
-                  className="mt-2 w-full border border-[#dedbd2] px-4 py-3 font-normal outline-none focus:border-[#a17b43]"
-                />
-              </label>
-
-              <label className="text-sm font-medium md:col-span-2">
-                Additional note (optional)
-                <textarea
-                  value={customer.note}
-                  onChange={(event) =>
-                    updateCustomer("note", event.target.value)
-                  }
-                  placeholder="Preferred delivery time or any other requirements"
-                  rows={2}
-                  className="mt-2 w-full border border-[#dedbd2] px-4 py-3 font-normal outline-none focus:border-[#a17b43]"
-                />
-              </label>
-
-              <div className="border-t border-[#dedbd2] pt-5 md:col-span-2">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm text-[#68746e]">
-                    Estimated subtotal
-                  </span>
-                  <span className="text-xl font-semibold">
-                    ৳{money(cartTotal)}
-                  </span>
-                </div>
-
-                <button
-                  type="submit"
-                  className="mt-5 w-full bg-[#187b48] px-6 py-4 text-sm font-bold text-white transition hover:bg-[#12643a]"
-                >
-                  Send Order via WhatsApp ↗
-                </button>
-
-                <p className="mt-3 text-center text-xs leading-5 text-[#68746e]">
-                  WhatsApp will open with your order details. You must press
-                  Send in WhatsApp to submit the order.
-                </p>
-              </div>
-            </form>
           </section>
-        )}
-
-        {/* Product cards */}
-        <div className="mt-9 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredProducts.map((product) => (
-            <article
-              key={product.id}
-              className="group overflow-hidden border border-[#e8e4dc] bg-white transition hover:border-[#d7b47a]"
-            >
-              <div className="relative aspect-[4/3.7] overflow-hidden bg-[#e9e6df]">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                />
-
-                <span className="absolute left-4 top-4 bg-[#faf9f6] px-3 py-2 text-[10px] font-bold uppercase tracking-widest">
-                  {product.category}
-                </span>
-              </div>
-
-              <div className="p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-xl font-medium">{product.name}</h3>
-                    <p className="mt-2 text-xs text-[#68746e]">
-                      Model: {product.sku}
-                    </p>
-                    <p className="mt-1 text-xs text-[#68746e]">
-                      Size: {product.size}
-                    </p>
-                  </div>
-
-                  <div className="shrink-0 text-right">
-                    <p className="text-lg font-semibold text-[#17352d]">
-                      ৳{money(product.price)}
-                    </p>
-                    <p className="text-[10px] text-[#68746e]">per sq. ft.</p>
-                  </div>
-                </div>
-
-                <p className="mt-4 min-h-12 text-sm leading-6 text-[#68746e]">
-                  {product.description}
-                </p>
-
-                <button
-                  onClick={() => addToCart(product)}
-                  className="mt-5 w-full border border-[#0b211d] bg-[#0b211d] px-5 py-4 text-xs font-bold uppercase tracking-[0.15em] text-white transition hover:border-[#d7b47a] hover:bg-[#d7b47a] hover:text-[#0b211d]"
-                >
-                  Add to Cart +
-                </button>
-              </div>
-            </article>
-          ))}
         </div>
+      )}
 
-        {filteredProducts.length === 0 && (
-          <div className="py-20 text-center">
-            <h3 className="text-2xl font-medium">No products found</h3>
-            <p className="mt-3 text-sm text-[#68746e]">
-              Try a different search or category.
-            </p>
-            <button
-              onClick={() => {
-                setSearch("");
-                setActiveCategory("All Collections");
-              }}
-              className="mt-6 bg-[#0b211d] px-6 py-3 text-xs font-bold text-white"
-            >
-              Show All Products
-            </button>
-          </div>
-        )}
-      </section>
-
-      {/* Contact CTA */}
-      <section className="bg-[#eae5d9] px-5 py-16 md:px-12 md:py-20">
-        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-6 md:flex-row md:items-center">
-          <div>
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.3em] text-[#a17b43]">
-              NEED HELP CHOOSING?
-            </p>
-            <h2 className="text-3xl font-medium">
-              Let&apos;s find your perfect tiles.
-            </h2>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-[#68746e]">
-              Contact our team to confirm availability, box coverage,
-              delivery charges and the quantity you need.
-            </p>
-          </div>
-
-          <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-              "Hello EMU CERAMIC! I would like help choosing ceramic tiles."
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-3 bg-[#187b48] px-7 py-4 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-[#12643a]"
-          >
-            Chat on WhatsApp ↗
-          </a>
-        </div>
-      </section>
+      {/* FOOTER */}
+      <footer className="bg-[#24271f] px-5 py-10 text-center text-white">
+        <p className="text-xs tracking-[0.3em] text-[#d5c29c]">
+          THE ART OF SURFACES
+        </p>
+        <h2 className="mt-3 text-2xl font-semibold">EMU CERAMIC</h2>
+        <p className="mt-3 text-sm text-white/60">
+          Timeless surfaces. Thoughtful spaces.
+        </p>
+        <p className="mt-6 text-xs text-white/40">
+          © {new Date().getFullYear()} EMU CERAMIC. All rights reserved.
+        </p>
+      </footer>
     </main>
   );
 }
