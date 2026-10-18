@@ -15,12 +15,15 @@ import {
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
+
 const navLinks = [
   { label: "Home", href: "/" },
   { label: "Collections", href: "/all-tiles" },
   { label: "Our Story", href: "/our-story" },
+  { label: "About Me", href: "/about-me" },
   { label: "Contact", href: "/contact" },
 ];
+
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
