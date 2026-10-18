@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { collections } from "@/lib/initial-products";
 import {
   Search,
   ShoppingBag,
@@ -14,107 +15,24 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-// নিজের ব্যবসার WhatsApp নম্বর দেশের কোডসহ বসাবে
+const CURRENT_YEAR = 2026;
+
 const WHATSAPP_NUMBER = "8801772404329";
 
-const collections = [
-  {
-    name: "Marble",
-    title: "Marble Elegance",
-    price: 95,
-    finish: "Glossy",
-    image:
-      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=85",
-  },
-  {
-    name: "Stone",
-    title: "Natural Stone",
-    price: 85,
-    finish: "Matte",
-    image:
-      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=900&q=85",
-  },
-  {
-    name: "Wood",
-    title: "Wood Essence",
-    price: 105,
-    finish: "Matte",
-    image:
-      "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=900&q=85",
-  },
-  {
-    name: "Concrete",
-    title: "Urban Concrete",
-    price: 80,
-    finish: "Matte",
-    image:
-      "https://images.unsplash.com/photo-1600607687644-c7171b42498f?auto=format&fit=crop&w=900&q=85",
-  },
-  {
-    name: "Glossy",
-    title: "Glossy Luxe",
-    price: 90,
-    finish: "High Gloss",
-    image:
-      "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=900&q=85",
-  },
-  {
-    name: "Matte",
-    title: "Minimal Matte",
-    price: 88,
-    finish: "Matte",
-    image:
-      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=85",
-  },
-  {
-    name: "Mosaic",
-    title: "Mosaic Art",
-    price: 120,
-    finish: "Decorative",
-    image:
-      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=900&q=85",
-  },
-  {
-    name: "Outdoor",
-    title: "Outdoor Pro",
-    price: 75,
-    finish: "Textured",
-    image:
-      "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=900&q=85",
-  },
-];
-
-const sizes = [
-  "12×12 inch",
-  "12×24 inch",
-  "24×24 inch",
-  "24×48 inch",
-  "32×32 inch",
-  "36×36 inch",
-];
-
-const products = collections.flatMap((collection, collectionIndex) =>
-  sizes.map((size, sizeIndex) => ({
-    id: collectionIndex * sizes.length + sizeIndex + 1,
-    name: `${collection.title} ${String(sizeIndex + 1).padStart(2, "0")}`,
-    collection: collection.name,
-    size,
-    finish: collection.finish,
-    price: collection.price + sizeIndex * 5,
-    image: collection.image,
-    featured: sizeIndex === 0 || sizeIndex === 2,
-  }))
-);
-
 const money = (amount) =>
-  `৳${Number(amount).toLocaleString("en-BD")}`;
+  `৳${Number(amount || 0).toLocaleString("en-BD")}`;
 
 export default function PremiumCollectionPage() {
+  const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [productsError, setProductsError] = useState("");
+
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [sortBy, setSortBy] = useState("featured");
   const [cart, setCart] = useState({});
   const [cartOpen, setCartOpen] = useState(false);
+
   const [customer, setCustomer] = useState({
     name: "",
     phone: "",
@@ -122,6 +40,51 @@ export default function PremiumCollectionPage() {
     note: "",
   });
 
+  // MongoDB থেকে products load
+  
+  // MongoDB থেকে products load
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadProducts() {
+      try {
+        setProductsLoading(true);
+        setProductsError("");
+
+        const response = await fetch("/api/products", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!Array.isArray(data)) {
+          throw new Error("API থেকে product array পাওয়া যায়নি।");
+        }
+
+        setProducts(data);
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          console.error("Product loading error:", error);
+          setProductsError(error.message || "Products load করা যায়নি।");
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setProductsLoading(false);
+        }
+      }
+    }
+
+    loadProducts();
+
+    return () => controller.abort();
+  }, []);
+
+  // Search, category and price sorting
   const filteredProducts = useMemo(() => {
     let result = products.filter((product) => {
       const query = search.trim().toLowerCase();
@@ -131,10 +94,10 @@ export default function PremiumCollectionPage() {
 
       const matchesSearch =
         !query ||
-        product.name.toLowerCase().includes(query) ||
-        product.collection.toLowerCase().includes(query) ||
-        product.size.toLowerCase().includes(query) ||
-        product.finish.toLowerCase().includes(query);
+        product.name?.toLowerCase().includes(query) ||
+        product.collection?.toLowerCase().includes(query) ||
+        product.size?.toLowerCase().includes(query) ||
+        product.finish?.toLowerCase().includes(query);
 
       return matchesCategory && matchesSearch;
     });
@@ -147,9 +110,16 @@ export default function PremiumCollectionPage() {
       result = [...result].sort((a, b) => b.price - a.price);
     }
 
-    return result;
-  }, [search, category, sortBy]);
+    if (sortBy === "featured") {
+      result = [...result].sort(
+        (a, b) => Number(b.featured) - Number(a.featured)
+      );
+    }
 
+    return result;
+  }, [products, search, category, sortBy]);
+
+  // Cart-এর products
   const cartItems = products
     .filter((product) => (cart[product.id] || 0) > 0)
     .map((product) => ({
@@ -167,7 +137,6 @@ export default function PremiumCollectionPage() {
     0
   );
 
-  // Add to Cart এবং quantity পরিবর্তনের মূল ফাংশন
   function updateQuantity(productId, change) {
     setCart((previousCart) => {
       const nextCart = { ...previousCart };
@@ -183,7 +152,6 @@ export default function PremiumCollectionPage() {
     });
   }
 
-  // Buy Now: পণ্য কার্টে যোগ করে checkout খুলবে
   function handleBuyNow(product) {
     setCart((previousCart) => ({
       ...previousCart,
@@ -378,6 +346,7 @@ export default function PremiumCollectionPage() {
               aria-label="Search products"
               className="w-full bg-transparent text-sm outline-none"
             />
+
             {search && (
               <button
                 type="button"
@@ -425,11 +394,30 @@ export default function PremiumCollectionPage() {
         </div>
 
         <p className="mb-5 text-sm text-gray-500">
-          Showing {filteredProducts.length} products
+          {productsLoading
+            ? "Loading products..."
+            : `Showing ${filteredProducts.length} products`}
         </p>
 
         {/* PRODUCT GRID */}
-        {filteredProducts.length > 0 ? (
+        {productsLoading ? (
+          <div className="border border-gray-200 bg-white py-16 text-center">
+            <p className="text-sm text-gray-500">
+              Loading products from MongoDB...
+            </p>
+          </div>
+        ) : productsError ? (
+          <div className="border border-red-200 bg-red-50 p-6 text-center">
+            <p className="text-sm text-red-700">{productsError}</p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-3 underline"
+            >
+              Try again
+            </button>
+          </div>
+        ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredProducts.map((product) => {
               const quantity = cart[product.id] || 0;
@@ -461,7 +449,9 @@ export default function PremiumCollectionPage() {
                   <div className="p-4">
                     <p className="text-[10px] uppercase tracking-[0.2em] text-[#8b7855]">
                       EMU CERAMIC · EC-
-                      {String(product.id).padStart(3, "0")}
+                      {product.legacyId
+                        ? String(product.legacyId).padStart(3, "0")
+                        : String(product.id).slice(-6).toUpperCase()}
                     </p>
 
                     <h3 className="mt-2 text-lg font-semibold">
@@ -473,6 +463,7 @@ export default function PremiumCollectionPage() {
                         <span className="text-gray-500">Size</span>
                         <span>{product.size}</span>
                       </div>
+
                       <div className="flex justify-between gap-2">
                         <span className="text-gray-500">Finish</span>
                         <span>{product.finish}</span>
@@ -481,7 +472,7 @@ export default function PremiumCollectionPage() {
 
                     <div className="mt-4">
                       <p className="text-xs text-gray-500">
-                        Demo price / sq.ft.
+                        Price / sq.ft.
                       </p>
                       <p className="text-xl font-semibold">
                         {money(product.price)}
@@ -517,9 +508,7 @@ export default function PremiumCollectionPage() {
                         <div className="flex items-center gap-3">
                           <button
                             type="button"
-                            onClick={() =>
-                              updateQuantity(product.id, -1)
-                            }
+                            onClick={() => updateQuantity(product.id, -1)}
                             aria-label={`Decrease ${product.name}`}
                             className="p-1 hover:bg-gray-100"
                           >
@@ -532,9 +521,7 @@ export default function PremiumCollectionPage() {
 
                           <button
                             type="button"
-                            onClick={() =>
-                              updateQuantity(product.id, 1)
-                            }
+                            onClick={() => updateQuantity(product.id, 1)}
                             aria-label={`Increase ${product.name}`}
                             className="p-1 hover:bg-gray-100"
                           >
@@ -644,9 +631,7 @@ export default function PremiumCollectionPage() {
                       <div className="mt-3 flex items-center gap-3">
                         <button
                           type="button"
-                          onClick={() =>
-                            updateQuantity(item.id, -1)
-                          }
+                          onClick={() => updateQuantity(item.id, -1)}
                           aria-label="Decrease quantity"
                           className="border p-1"
                         >
@@ -659,9 +644,7 @@ export default function PremiumCollectionPage() {
 
                         <button
                           type="button"
-                          onClick={() =>
-                            updateQuantity(item.id, 1)
-                          }
+                          onClick={() => updateQuantity(item.id, 1)}
                           aria-label="Increase quantity"
                           className="border p-1"
                         >
@@ -786,7 +769,7 @@ export default function PremiumCollectionPage() {
           Timeless surfaces. Thoughtful spaces.
         </p>
         <p className="mt-6 text-xs text-white/40">
-          © {new Date().getFullYear()} EMU CERAMIC. All rights reserved.
+         © {CURRENT_YEAR} EMU CERAMIC. All rights reserved.
         </p>
       </footer>
     </main>

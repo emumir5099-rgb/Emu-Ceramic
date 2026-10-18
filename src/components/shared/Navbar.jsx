@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -10,6 +11,7 @@ import {
   ArrowUpRight,
   UserRound,
   LogOut,
+  LayoutDashboard,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
@@ -23,9 +25,15 @@ const navLinks = [
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const pathname = usePathname();
 
+  const pathname = usePathname();
   const { data: session, isPending } = authClient.useSession();
+
+  const isLoggedIn = Boolean(session?.user);
+  const isAdmin = session?.user?.role === "admin";
+
+  const accountHref = isAdmin ? "/admin" : "/client";
+  const accountLabel = isAdmin ? "Admin Dashboard" : "Customer Profile";
 
   const closeMenu = () => {
     setMenuOpen(false);
@@ -46,8 +54,6 @@ export default function Navbar() {
       console.error("Logout failed:", error);
     }
   };
-
-  const isLoggedIn = Boolean(session?.user);
 
   return (
     <header className="sticky top-0 z-50">
@@ -105,6 +111,7 @@ export default function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={closeMenu}
                   aria-current={active ? "page" : undefined}
                   className={`group relative py-3 text-[12px] font-medium tracking-wide transition-colors duration-200 xl:text-[13px] ${
                     active
@@ -130,28 +137,31 @@ export default function Navbar() {
                 <div className="relative">
                   <button
                     type="button"
-                    onClick={() =>
-                      setProfileMenuOpen((open) => !open)
-                    }
-                    aria-label="Customer profile menu"
+                    onClick={() => setProfileMenuOpen((open) => !open)}
+                    aria-label="Account menu"
                     aria-expanded={profileMenuOpen}
                     className={`flex items-center gap-2 border px-3 py-2.5 transition-colors ${
-                      isActive("/client")
+                      isActive(accountHref)
                         ? "border-[#A47743] bg-[#0B211D] text-white"
                         : "border-[#0B211D]/20 text-[#0B211D] hover:border-[#A47743] hover:bg-[#0B211D] hover:text-white"
                     }`}
                   >
-                    <UserRound size={17} strokeWidth={1.7} />
-                    <span className="max-w-28 truncate text-xs font-medium">
-                      {session.user.name || "My Account"}
+                    {isAdmin ? (
+                      <LayoutDashboard size={17} strokeWidth={1.7} />
+                    ) : (
+                      <UserRound size={17} strokeWidth={1.7} />
+                    )}
+
+                    <span className="max-w-36 truncate text-xs font-medium">
+                      {session.user.name || accountLabel}
                     </span>
                   </button>
 
                   {profileMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-56 border border-[#0B211D]/10 bg-[#FAF9F6] p-2 shadow-xl">
+                    <div className="absolute right-0 top-full mt-2 w-60 border border-[#0B211D]/10 bg-[#FAF9F6] p-2 shadow-xl">
                       <div className="border-b border-[#0B211D]/10 px-3 py-3">
                         <p className="text-sm font-semibold text-[#0B211D]">
-                          My Account
+                          {isAdmin ? "Administrator" : "My Account"}
                         </p>
                         <p className="mt-1 truncate text-xs text-[#0B211D]/60">
                           {session.user.email}
@@ -159,12 +169,16 @@ export default function Navbar() {
                       </div>
 
                       <Link
-                        href="/client"
+                        href={accountHref}
                         onClick={closeMenu}
                         className="flex items-center gap-3 px-3 py-3 text-sm text-[#0B211D] transition-colors hover:bg-[#0B211D]/5 hover:text-[#A47743]"
                       >
-                        <UserRound size={16} />
-                        Customer Profile
+                        {isAdmin ? (
+                          <LayoutDashboard size={16} />
+                        ) : (
+                          <UserRound size={16} />
+                        )}
+                        {accountLabel}
                       </Link>
 
                       <button
@@ -194,12 +208,16 @@ export default function Navbar() {
             {!isPending &&
               (isLoggedIn ? (
                 <Link
-                  href="/client"
+                  href={accountHref}
                   onClick={closeMenu}
-                  aria-label="Customer Profile"
+                  aria-label={accountLabel}
                   className="grid h-10 w-10 place-items-center border border-[#A47743] bg-[#0B211D] text-white transition-colors hover:bg-[#A47743]"
                 >
-                  <UserRound size={19} />
+                  {isAdmin ? (
+                    <LayoutDashboard size={19} />
+                  ) : (
+                    <UserRound size={19} />
+                  )}
                 </Link>
               ) : (
                 <Link
@@ -262,12 +280,16 @@ export default function Navbar() {
             {isLoggedIn ? (
               <>
                 <Link
-                  href="/client"
+                  href={accountHref}
                   onClick={closeMenu}
                   className="mt-5 flex w-full items-center justify-center gap-2 border border-[#A47743] bg-[#0B211D] px-4 py-3.5 text-sm font-medium text-white transition-colors hover:bg-[#A47743]"
                 >
-                  <UserRound size={17} />
-                  My Customer Profile
+                  {isAdmin ? (
+                    <LayoutDashboard size={17} />
+                  ) : (
+                    <UserRound size={17} />
+                  )}
+                  {isAdmin ? "Admin Dashboard" : "My Customer Profile"}
                 </Link>
 
                 <button
