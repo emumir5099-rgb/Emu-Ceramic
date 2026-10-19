@@ -21,8 +21,12 @@ export const metadata = {
   },
   description:
     "Discover elegant ceramic tiles, marble designs, and premium surfaces with EMU CERAMIC.",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
 };
-
 export default function RootLayout({ children }) {
   return (
     <html
