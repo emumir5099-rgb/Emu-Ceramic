@@ -1,3 +1,4 @@
+
 import { betterAuth } from "better-auth";
 import { MongoClient } from "mongodb";
 import { mongodbAdapter } from "@better-auth/mongo-adapter";
@@ -19,7 +20,20 @@ if (!authUrl) {
   throw new Error("BETTER_AUTH_URL is missing");
 }
 
-const client = new MongoClient(mongoUri);
+const globalForAuthMongo = globalThis;
+
+const client =
+  globalForAuthMongo.authMongoClient ??
+  new MongoClient(mongoUri, {
+    serverSelectionTimeoutMS: 10000,
+    connectTimeoutMS: 10000,
+    maxPoolSize: 10,
+  });
+
+if (process.env.NODE_ENV !== "production") {
+  globalForAuthMongo.authMongoClient = client;
+}
+
 const db = client.db();
 
 export const auth = betterAuth({
@@ -32,6 +46,7 @@ export const auth = betterAuth({
     "https://emu-ceramic.vercel.app",
     "https://emu-ceramic-git-main-emu-mirs-projects.vercel.app",
     "https://emu-ceramic-l9qsuf364-emu-mirs-projects.vercel.app",
+    "http://localhost:3000"
   ],
 
   emailAndPassword: {

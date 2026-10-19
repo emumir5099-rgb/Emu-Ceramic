@@ -1,11 +1,15 @@
+
 "use client";
 
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
 export default function RegisterPage() {
+  const router = useRouter();
+
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("error");
@@ -31,6 +35,12 @@ export default function RegisterPage() {
 
     setMessage("");
 
+    if (!name || !email || !phone) {
+      setMessageType("error");
+      setMessage("Please fill in all required fields.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setMessageType("error");
       setMessage("Passwords do not match. Please try again.");
@@ -50,33 +60,29 @@ export default function RegisterPage() {
         name,
         email,
         password,
-        callbackURL: "/login",
+        callbackURL: "/client",
       });
 
       if (result.error) {
         setMessageType("error");
         setMessage(
-          result.error.message || "Registration failed. Please try again."
+          result.error.message ||
+            "Registration failed. Please try again."
         );
         return;
       }
 
       setMessageType("success");
-      setMessage(
-        "Account created successfully! You can now sign in."
-      );
-      form.reset();
-      setShowPassword(false);
+      setMessage("Account created successfully! Redirecting...");
 
-      // Phone is collected by the form but is not saved by
-      // Better Auth unless phone is configured as an additional field.
-      console.log("Registration completed for:", email);
+      router.replace("/client");
+      router.refresh();
     } catch (error) {
       console.error("Registration error:", error);
 
       setMessageType("error");
       setMessage(
-        "Unable to create your account. Check your connection and try again."
+        "Unable to create your account. Please try again."
       );
     } finally {
       setLoading(false);
