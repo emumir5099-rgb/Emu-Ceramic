@@ -1,3 +1,4 @@
+
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
@@ -18,11 +19,12 @@ async function isAdmin() {
   return session?.user?.role === "admin";
 }
 
-function serializeProduct(product) {
+function serializeProduct(product, index = 0) {
+  const { _id, ...rest } = product;
+
   return {
-    ...product,
-    id: product._id.toString(),
-    _id: undefined,
+    ...rest,
+    id: String(_id ?? product.id ?? product.legacyId ?? index + 1),
   };
 }
 
@@ -37,7 +39,7 @@ async function seedInitialProducts(db) {
   if (!marker) {
     const count = await products.countDocuments();
 
-    if (count === 0) {
+    if (count === 0 && initialProducts.length > 0) {
       await products.insertMany(initialProducts);
     }
 
@@ -65,14 +67,27 @@ export async function GET() {
       .sort({ legacyId: 1, name: 1 })
       .toArray();
 
-    return NextResponse.json(products.map(serializeProduct));
+    return NextResponse.json(
+      products.map((product, index) => serializeProduct(product, index)),
+      {
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      }
+    );
   } catch (error) {
     console.error("GET /api/products failed:", error);
 
-    return NextResponse.json(
-      { message: "Products load করা যায়নি।" },
-      { status: 500 }
+    // Database connection fails: show initial products as fallback.
+    const fallbackProducts = initialProducts.map((product, index) =>
+      serializeProduct(product, index)
     );
+
+    return NextResponse.json(fallbackProducts, {
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    });
   }
 }
 
@@ -87,12 +102,18 @@ export async function POST(request) {
 
     const body = await request.json();
 
-    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const name =
+      typeof body.name === "string" ? body.name.trim() : "";
     const collection =
-      typeof body.collection === "string" ? body.collection.trim() : "";
-    const size = typeof body.size === "string" ? body.size.trim() : "";
-    const finish = typeof body.finish === "string" ? body.finish.trim() : "";
-    const image = typeof body.image === "string" ? body.image.trim() : "";
+      typeof body.collection === "string"
+        ? body.collection.trim()
+        : "";
+    const size =
+      typeof body.size === "string" ? body.size.trim() : "";
+    const finish =
+      typeof body.finish === "string" ? body.finish.trim() : "";
+    const image =
+      typeof body.image === "string" ? body.image.trim() : "";
     const price = Number(body.price);
 
     if (!name || !collection || !size || !finish || !image) {
