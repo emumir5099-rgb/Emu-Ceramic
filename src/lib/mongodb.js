@@ -1,3 +1,4 @@
+
 import { MongoClient } from "mongodb";
 
 const uri = process.env.MONGODB_URI;
@@ -7,19 +8,28 @@ if (!uri) {
 }
 
 const options = {
-  serverSelectionTimeoutMS: 10000,
-  connectTimeoutMS: 10000,
+  serverSelectionTimeoutMS: 15000,
+  connectTimeoutMS: 15000,
   maxPoolSize: 10,
 };
 
-const globalWithMongo = globalThis;
+const globalForMongo = globalThis;
 
-const clientPromise =
-  globalWithMongo.mongoClientPromise ||
-  new MongoClient(uri, options).connect();
+const client =
+  globalForMongo.mongoClient ??
+  new MongoClient(uri, options);
 
-if (process.env.NODE_ENV !== "production") {
-  globalWithMongo.mongoClientPromise = clientPromise;
+if (!globalForMongo.mongoClient) {
+  globalForMongo.mongoClient = client;
 }
 
+const clientPromise =
+  globalForMongo.mongoClientPromise ??
+  client.connect();
+
+if (!globalForMongo.mongoClientPromise) {
+  globalForMongo.mongoClientPromise = clientPromise;
+}
+
+export { client };
 export default clientPromise;
